@@ -9,20 +9,21 @@ class AppNotification extends Model
 {
     use HasFactory;
 
-    protected $table = 'notifications';
+    // If your table in database is still named 'notifications', you MUST add this line:
+    protected $table = 'notifications'; 
 
     protected $fillable = [
         'user_id',
         'type',
         'title',
-        'body',
+        'message',
+        'data',
         'read_at',
-        'meta',
     ];
 
     protected $casts = [
+        'data' => 'array',
         'read_at' => 'datetime',
-        'meta' => 'array',
     ];
 
     public function user()

@@ -18,14 +18,7 @@
     <p class="muted small">Graphique simple en JavaScript (sans librairie).</p>
   </div>
 
-  <div class="card">
-    <h2>Administration</h2>
-    <div class="row gap">
-      <a class="btn" href="{{ route('admin.users.index') }}">Gérer utilisateurs</a>
-      <a class="btn secondary" href="{{ route('admin.maintenance.index') }}">Maintenances</a>
-      <a class="btn secondary" href="{{ route('resources.index') }}">Catalogue</a>
-    </div>
-  </div>
+
 
   @push('scripts')
     <script>window.renderSimpleBarChart('chart');</script>

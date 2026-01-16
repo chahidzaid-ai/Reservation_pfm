@@ -31,6 +31,7 @@ class MaintenanceController extends Controller
             'reason' => ['required', 'string', 'max:2000'],
         ]);
 
+        // 1. Create the Maintenance Record
         $m = Maintenance::create([
             'resource_id' => $data['resource_id'],
             'start_at' => $data['start_at'],
@@ -39,10 +40,17 @@ class MaintenanceController extends Controller
             'created_by' => $request->user()->id,
         ]);
 
+        // 2. [CRITICAL FIX] Update the Resource Status to 'maintenance'
+        $res = Resource::find($data['resource_id']);
+        if ($res) {
+            $res->status = 'maintenance';
+            $res->save();
+        }
+
+        // 3. Log the action
         $logger->log($request->user()->id, 'maintenance.create', Maintenance::class, $m->id, $data);
 
-        // notify resource manager if exists
-        $res = Resource::find($data['resource_id']);
+        // 4. Notify resource manager if exists
         if ($res && $res->manager_id) {
             $notifier->notify((int)$res->manager_id, 'maintenance', 'Maintenance planifiée', "Une maintenance est planifiée pour {$res->name}.", [
                 'resource_id' => $res->id,
@@ -50,15 +58,27 @@ class MaintenanceController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.maintenance.index')->with('success', 'Maintenance créée.');
+        return redirect()->route('admin.maintenance.index')->with('success', 'Maintenance créée et statut mis à jour.');
     }
 
     public function destroy(Request $request, Maintenance $maintenance, AuditLogger $logger)
     {
         $id = $maintenance->id;
+        
+        // 1. [CRITICAL FIX] Get the resource BEFORE deleting the maintenance
+        $resource = Resource::find($maintenance->resource_id);
+
+        // 2. Delete the maintenance
         $maintenance->delete();
+
+        // 3. [CRITICAL FIX] Set status back to 'available'
+        if ($resource) {
+            $resource->status = 'available';
+            $resource->save();
+        }
+
         $logger->log($request->user()->id, 'maintenance.delete', Maintenance::class, $id, []);
 
-        return redirect()->route('admin.maintenance.index')->with('success', 'Maintenance supprimée.');
+        return redirect()->route('admin.maintenance.index')->with('success', 'Maintenance terminée. Ressource disponible.');
     }
 }

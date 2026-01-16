@@ -11,6 +11,7 @@ use App\Services\AppNotifier;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate; // <--- 1. ADDED IMPORT
 
 class ReservationController extends Controller
 {
@@ -28,8 +29,9 @@ class ReservationController extends Controller
 
     public function create(Request $request)
     {
+        // 2. FIXED: Changed 'state' to 'status' to match your database
         $resources = Resource::query()
-            ->where('state', '!=', Resource::STATE_DISABLED)
+            ->where('status', '!=', 'disabled') 
             ->with('category')
             ->orderBy('name')
             ->get();
@@ -63,7 +65,7 @@ class ReservationController extends Controller
         $reservation = DB::transaction(function () use ($request, $data, $logger) {
             $reservation = Reservation::create([
                 'user_id' => $request->user()->id,
-                'status' => Reservation::STATUS_PENDING,
+                'status' => Reservation::STATUS_PENDING, // Ensure this constant exists in your Model, or use 'pending'
                 'start_at' => $data['start_at'],
                 'end_at' => $data['end_at'],
                 'justification' => $data['justification'],
@@ -85,7 +87,7 @@ class ReservationController extends Controller
             return $reservation;
         });
 
-        // Notify managers of involved resources (simple approach)
+        // Notify managers
         $managerIds = Resource::query()->whereIn('id', $data['resource_ids'])->whereNotNull('manager_id')->pluck('manager_id')->unique();
         foreach ($managerIds as $mid) {
             $notifier->notify((int)$mid, 'reservation', 'Nouvelle demande de réservation', "Une nouvelle demande est en attente (ID #{$reservation->id}).", [
@@ -98,7 +100,9 @@ class ReservationController extends Controller
 
     public function show(Request $request, Reservation $reservation)
     {
-        $this->authorize('view', $reservation);
+        // 3. FIXED: Used Gate facade instead of $this->authorize
+        Gate::authorize('view', $reservation);
+        
         $reservation->load('items.resource.category', 'user', 'decider');
         return view('reservations.show', compact('reservation'));
     }

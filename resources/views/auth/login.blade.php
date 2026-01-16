@@ -3,31 +3,50 @@
 @section('title', 'Connexion')
 
 @section('content')
-  <div class="card narrow">
-    <h1>Connexion</h1>
-    <form method="post" action="{{ route('login.post') }}">
-      @csrf
-      <label>Email
-        <input type="email" name="email" value="{{ old('email') }}" required>
-      </label>
 
-      <label>Mot de passe
-        <input type="password" name="password" required>
-      </label>
+{{-- Wrapper to center and add top spacing --}}
+<div class="login-wrapper">
 
-      <label class="row gap">
-        <input type="checkbox" name="remember" value="1">
-        <span>Se souvenir de moi</span>
-      </label>
+    {{-- The Big Card Container --}}
+    <div class="big-card">
+        <h1>Connexion</h1>
+        
+        <form method="post" action="{{ route('login.post') }}">
+            @csrf
+            
+            {{-- Email Input --}}
+            <label style="font-size: 1.1rem; color: #cbd5e1;">Email
+                <input type="email" name="email" value="{{ old('email') }}" required 
+                       class="big-input" 
+                       placeholder="exemple@datacenter.com">
+            </label>
 
-      <div class="row between center">
-        <button class="btn" type="submit">Se connecter</button>
-        <a href="{{ route('register') }}">Créer un compte (démo)</a>
-      </div>
+            {{-- Password Input --}}
+            <label style="font-size: 1.1rem; color: #cbd5e1;">Mot de passe
+                <input type="password" name="password" required 
+                       class="big-input" 
+                       placeholder="••••••••">
+            </label>
 
-      <p class="muted small">
-        Pour une vraie demande d’ouverture de compte, utilisez « Demander un compte ».
-      </p>
-    </form>
-  </div>
+            {{-- Checkbox --}}
+            <label class="row gap" style="margin-bottom: 30px; cursor: pointer; align-items: center;">
+                <input type="checkbox" name="remember" value="1" style="width: 20px; height: 20px; margin: 0;">
+                <span style="font-size: 1.1rem; margin-left: 10px;">Se souvenir de moi</span>
+            </label>
+
+            {{-- Buttons Area --}}
+            <div class="row between center">
+                <button class="btn btn-big" type="submit">
+                    Se connecter
+                </button>
+                
+                <a href="{{ route('account.request') }}" style="color: #60a5fa; font-size: 1.1rem; text-decoration: none;">
+                    Demander un compte
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
 @endsection
